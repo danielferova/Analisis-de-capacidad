@@ -1,0 +1,5 @@
+{
+  "name": "Análisis de Capacidad - CNP Network",
+  "description": "Una herramienta personalizada para analizar la capacidad de producción, identificar cuellos de botella y obtener recomendaciones de optimización para CNP Network.",
+  "requestFramePermissions": []
+}
