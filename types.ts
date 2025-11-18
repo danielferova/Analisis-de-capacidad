@@ -33,23 +33,34 @@ export interface ProductAnalysis {
   price: number;
   cost: number;
   currentMonthlyUnits: number;
-  sustainableUnits: number; // Unidades que se pueden producir con el cuello de botella al 100%
+  sustainableUnits: number; // Unidades que se pueden producir ajustado al cuello de botella
   currentRevenue: number;
   currentProfit: number;
   maxUnits: number;
   potentialRevenue: number;
   potentialProfit: number;
   bottleneck: string;
-  hoursImpresionAtMax: number; // Workload for 'Taller de Impresión (Mano de Obra)' at max units
-  hoursMaquinariaAtMax: number; // Workload for 'Maquinaria Clave (OEE Real)' at max units
+  hoursImpresionAtMax: number; 
+  hoursMaquinariaAtMax: number; 
   hoursEstructurasAtMax: number;
   hoursInstalacionAtMax: number;
   hoursArtesAtMax: number;
 }
 
+// NUEVO: Define la estructura para la tabla de proyección del mix actual al 100%
+export interface MaxMixAnalysis {
+  productId: string;
+  name: string;
+  currentUnits: number;
+  maxUnitsWithMix: number;
+  maxProfitWithMix: number;
+}
+
+
 export interface AnalysisResults {
   departmentUtilization: DepartmentUtilization[];
   productAnalysis: ProductAnalysis[];
+  maxMixAnalysis: MaxMixAnalysis[]; // NUEVO: Datos para la tabla de producción sostenible con mix actual
   // Métricas de la producción actual
   currentProductionRevenue: number;
   currentProductionProfit: number;
@@ -62,6 +73,7 @@ export interface AnalysisResults {
   bottleneckDepartmentName: string;
   bottleneckOverloadPercentage: number;
   globalCapacityUtilization: number;
+  expansionFactor: number; // NUEVO: Factor para escalar la producción al 100%
   // Brecha entre producción actual y el potencial máximo
   opportunityGapRevenue: number;
   opportunityGapProfit: number;

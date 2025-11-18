@@ -4,7 +4,7 @@ import Header from './components/Header';
 import WorkshopCard from './components/WorkshopCard';
 import ResultsDisplay from './components/ResultsDisplay';
 import Spinner from './components/Spinner';
-import type { Department, Product, AnalysisResults, ProductAnalysis, DepartmentUtilization } from './types';
+import type { Department, Product, AnalysisResults, ProductAnalysis, DepartmentUtilization, MaxMixAnalysis } from './types';
 import { INITIAL_DEPARTMENTS, INITIAL_PRODUCTS, HISTORICAL_REVENUE } from './constants';
 import { getSuggestionsFromGemini } from './services/geminiService';
 
@@ -104,27 +104,39 @@ const App: React.FC = () => {
       const sustainableRevenue = productAnalysis.reduce((sum, p) => sum + (p.sustainableUnits * p.price), 0);
       const sustainableProfit = productAnalysis.reduce((sum, p) => sum + (p.sustainableUnits * (p.price - p.cost)), 0);
       
-      // CORRECTED (PASO 5 y 6): Global utilization is now a fixed strategic value (OEE).
-      // This is used for the main KPI and potential calculations.
-      // The individual department bars will still show their actual calculated utilization.
+      // 5. Calculate global capacity and potential based on strategic OEE
       const OEE_UTILIZATION = 68.4;
       const globalCapacityUtilization = OEE_UTILIZATION;
-      const capacityScalingFactor = OEE_UTILIZATION > 0 ? 100 / OEE_UTILIZATION : 1;
+      const expansionFactor = OEE_UTILIZATION > 0 ? 100 / OEE_UTILIZATION : 1;
       
-      const maxCapacityRevenue = currentProductionRevenue * capacityScalingFactor;
-      const maxCapacityProfit = currentProductionProfit * capacityScalingFactor;
+      const maxCapacityRevenue = currentProductionRevenue * expansionFactor;
+      const maxCapacityProfit = currentProductionProfit * expansionFactor;
 
-      // 6. Calculate the opportunity gap
+      // 6. NUEVO: Calculate max sustainable production with current mix
+      const maxMixAnalysis: MaxMixAnalysis[] = products.map(p => {
+        const unitProfit = p.price - p.cost;
+        const maxUnitsWithMix = p.currentMonthlyUnits * expansionFactor;
+        return {
+            productId: p.id,
+            name: p.name,
+            currentUnits: p.currentMonthlyUnits,
+            maxUnitsWithMix: maxUnitsWithMix,
+            maxProfitWithMix: maxUnitsWithMix * unitProfit,
+        };
+      });
+
+      // 7. Calculate the opportunity gap
       const opportunityGapRevenue = maxCapacityRevenue - currentProductionRevenue;
       const opportunityGapProfit = maxCapacityProfit - currentProductionProfit;
 
-      // 7. Calculate historical average
+      // 8. Calculate historical average
       const totalHistoricalRevenue = HISTORICAL_REVENUE.reduce((sum, item) => sum + item.revenue, 0);
       const averageHistoricalRevenue = totalHistoricalRevenue > 0 ? totalHistoricalRevenue / HISTORICAL_REVENUE.length : 0;
 
       setResults({
         departmentUtilization,
         productAnalysis,
+        maxMixAnalysis, // NUEVO
         currentProductionRevenue,
         currentProductionProfit,
         sustainableRevenue,
@@ -133,6 +145,7 @@ const App: React.FC = () => {
         bottleneckDepartmentName: bottleneckDepartment.name,
         bottleneckOverloadPercentage: bottleneckDepartment.utilizationPercentage,
         globalCapacityUtilization,
+        expansionFactor, // NUEVO
         opportunityGapRevenue,
         opportunityGapProfit,
         maxCapacityRevenue,

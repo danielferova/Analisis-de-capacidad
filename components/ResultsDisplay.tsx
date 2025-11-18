@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { AnalysisResults } from '../types';
 import { SparklesIcon } from '../constants';
@@ -177,6 +178,40 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onGetSuggestio
         </div>
       </div>
       
+      {/* NUEVO: Tabla de Producción Sostenible a 100% con Mix Actual */}
+      {results.maxMixAnalysis && results.expansionFactor && (
+        <div className="mt-8">
+            <h3 className="text-xl font-semibold text-teal-400 mb-2">Producción Sostenible a 100% (con Mix Actual)</h3>
+            <p className="text-sm text-gray-400 mb-4">
+                Esta proyección muestra cuántas unidades podrías producir si escalarás tu plan actual para operar a una capacidad del 100% (basado en el OEE de {results.globalCapacityUtilization.toFixed(1)}%), manteniendo la misma proporción entre productos.
+            </p>
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left text-gray-300">
+                    <thead className="text-xs text-gray-400 uppercase bg-gray-700">
+                        <tr>
+                            <th className="p-3">Producto</th>
+                            <th className="p-3 text-center">Unidades Actuales</th>
+                            <th className="p-3 text-center">Factor de Expansión</th>
+                            <th className="p-3 text-center">Unidades a 100%</th>
+                            <th className="p-3 text-center">Utilidad a 100%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {results.maxMixAnalysis.map(p => (
+                            <tr key={p.productId} className="border-b border-gray-700 hover:bg-gray-700/50">
+                                <td className="p-3 font-medium">{p.name}</td>
+                                <td className="p-3 text-center text-lg">{p.currentUnits}</td>
+                                <td className="p-3 text-center font-mono text-cyan-400">x{results.expansionFactor.toFixed(3)}</td>
+                                <td className="p-3 text-center font-bold text-teal-400 text-lg">{p.maxUnitsWithMix.toFixed(0)}</td>
+                                <td className="p-3 text-center font-semibold text-green-400">{formatCurrency(p.maxProfitWithMix)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+      )}
+
       {/* Top 5 Products by Individual Potential */}
       {hasFinancials && (
         <div className="mt-8">
@@ -197,8 +232,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onGetSuggestio
                   <tr key={p.productId} className="border-b border-gray-700 hover:bg-gray-700/50">
                     <td className="p-3 font-medium">{p.name}</td>
                     <td className="p-3 text-center font-bold text-teal-400 text-lg">{p.maxUnits.toFixed(0)}</td>
-                    <td className="p-3 text-center font-semibold text-green-400">Q{p.potentialProfit.toLocaleString('es-GT', { style: 'decimal', minimumFractionDigits: 2 })}</td>
-                    <td className="p-3 text-center">Q{p.potentialRevenue.toLocaleString('es-GT', { style: 'decimal', minimumFractionDigits: 2 })}</td>
+                    <td className="p-3 text-center font-semibold text-green-400">{formatCurrency(p.potentialProfit)}</td>
+                    <td className="p-3 text-center">{formatCurrency(p.potentialRevenue)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -209,7 +244,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, onGetSuggestio
 
       {/* AI Suggestions */}
       {hasFinancials && (
-        <div className="pt-6 border-t border-gray-700">
+        <div className="pt-6 border-t border-gray-700 mt-12">
             <button 
               onClick={onGetSuggestions}
               disabled={isLoadingSuggestions}
