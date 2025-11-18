@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Header from './components/Header';
 import WorkshopCard from './components/WorkshopCard';
@@ -22,12 +23,16 @@ const App: React.FC = () => {
 
     setTimeout(() => {
       // 1. Calculate department utilization based on the current production plan
-      const requiredHours: { [key in Department['id']]: number } = { impresion: 0, maquinaria: 0, estructuras: 0, instalacion: 0 };
+      const requiredHours: { [key in Department['id']]: number } = { impresion: 0, maquinaria: 0, estructuras: 0, instalacion: 0, artes: 0 };
       products.forEach(p => {
-        requiredHours.impresion += p.currentMonthlyUnits * p.hoursArtes;
-        requiredHours.maquinaria += p.currentMonthlyUnits * p.hoursImpresion;
+        const machineHours = p.hoursImpresion + p.hoursCorteUV;
+        // Printing & Cutting workload is applied to both Machine time ('maquinaria') and Labor ('impresion')
+        requiredHours.impresion += p.currentMonthlyUnits * machineHours;
+        requiredHours.maquinaria += p.currentMonthlyUnits * machineHours;
         requiredHours.estructuras += p.currentMonthlyUnits * p.hoursEstructuras;
         requiredHours.instalacion += p.currentMonthlyUnits * p.hoursInstalacion;
+        requiredHours.artes += p.currentMonthlyUnits * p.hoursArtes;
+        // NOTE: hoursSecado is captured in the data but not added to a specific department's load.
       });
 
       const departmentUtilization: DepartmentUtilization[] = departments.map(d => ({
@@ -42,17 +47,21 @@ const App: React.FC = () => {
       const bottleneckDepartment = departmentUtilization.reduce((max, current) =>
         max.utilizationPercentage > current.utilizationPercentage ? max : current
       );
-      const bottleneckOverloadRatio = bottleneckDepartment.utilizationPercentage > 100 ? bottleneckDepartment.utilizationPercentage / 100 : 1;
+      
+      const bottleneckScalingFactor = bottleneckDepartment.requiredHours > 0 ? bottleneckDepartment.availableHours / bottleneckDepartment.requiredHours : 1;
 
       // 3. Analyze each product's potential and sustainable units
       const productAnalysis: ProductAnalysis[] = products.map(p => {
+        const totalMachineHoursPerUnit = p.hoursImpresion + p.hoursCorteUV;
+
         // Max units if 100% of capacity was dedicated to this product
-        const maxFromImpresion = p.hoursArtes > 0 ? departments.find(d => d.id === 'impresion')!.availableHours / p.hoursArtes : Infinity;
-        const maxFromMaquinaria = p.hoursImpresion > 0 ? departments.find(d => d.id === 'maquinaria')!.availableHours / p.hoursImpresion : Infinity;
+        const maxFromImpresion = totalMachineHoursPerUnit > 0 ? departments.find(d => d.id === 'impresion')!.availableHours / totalMachineHoursPerUnit : Infinity;
+        const maxFromMaquinaria = totalMachineHoursPerUnit > 0 ? departments.find(d => d.id === 'maquinaria')!.availableHours / totalMachineHoursPerUnit : Infinity;
         const maxFromEstructuras = p.hoursEstructuras > 0 ? departments.find(d => d.id === 'estructuras')!.availableHours / p.hoursEstructuras : Infinity;
         const maxFromInstalacion = p.hoursInstalacion > 0 ? departments.find(d => d.id === 'instalacion')!.availableHours / p.hoursInstalacion : Infinity;
+        const maxFromArtes = p.hoursArtes > 0 ? departments.find(d => d.id === 'artes')!.availableHours / p.hoursArtes : Infinity;
         
-        const maxUnits = Math.min(maxFromImpresion, maxFromMaquinaria, maxFromEstructuras, maxFromInstalacion);
+        const maxUnits = Math.min(maxFromImpresion, maxFromMaquinaria, maxFromEstructuras, maxFromInstalacion, maxFromArtes);
         
         let bottleneck: string = 'N/A';
         if (maxUnits !== Infinity) {
@@ -61,6 +70,7 @@ const App: React.FC = () => {
           if (maxUnits.toFixed(2) === maxFromMaquinaria.toFixed(2)) bottlenecks.push('Maquinaria');
           if (maxUnits.toFixed(2) === maxFromEstructuras.toFixed(2)) bottlenecks.push('Estructuras');
           if (maxUnits.toFixed(2) === maxFromInstalacion.toFixed(2)) bottlenecks.push('Instalación');
+          if (maxUnits.toFixed(2) === maxFromArtes.toFixed(2)) bottlenecks.push('Artes Finales');
           bottleneck = bottlenecks.join(' / ');
         }
         
@@ -73,45 +83,60 @@ const App: React.FC = () => {
           price: p.price,
           cost: p.cost,
           currentMonthlyUnits: p.currentMonthlyUnits,
-          // Sustainable units are the planned units scaled down by the bottleneck overload
-          sustainableUnits: p.currentMonthlyUnits / bottleneckOverloadRatio,
+          sustainableUnits: p.currentMonthlyUnits * bottleneckScalingFactor,
           currentRevenue: p.currentMonthlyUnits * p.price,
           currentProfit: p.currentMonthlyUnits * unitProfit,
           maxUnits: finalMaxUnits,
           potentialRevenue: finalMaxUnits * p.price,
           potentialProfit: finalMaxUnits * unitProfit,
           bottleneck,
-          hoursImpresionAtMax: finalMaxUnits * p.hoursArtes,
-          hoursMaquinariaAtMax: finalMaxUnits * p.hoursImpresion,
+          hoursImpresionAtMax: finalMaxUnits * totalMachineHoursPerUnit,
+          hoursMaquinariaAtMax: finalMaxUnits * totalMachineHoursPerUnit,
           hoursEstructurasAtMax: finalMaxUnits * p.hoursEstructuras,
           hoursInstalacionAtMax: finalMaxUnits * p.hoursInstalacion,
+          hoursArtesAtMax: finalMaxUnits * p.hoursArtes,
         };
       });
       
-      // 4. Calculate Planned vs. Sustainable financials
-      const plannedRevenue = productAnalysis.reduce((sum, p) => sum + p.currentRevenue, 0);
-      const plannedProfit = productAnalysis.reduce((sum, p) => sum + p.currentProfit, 0);
-      const actualSustainableRevenue = productAnalysis.reduce((sum, p) => sum + (p.sustainableUnits * p.price), 0);
+      // 4. Calculate Current, Sustainable, and Max Potential financials
+      const currentProductionRevenue = productAnalysis.reduce((sum, p) => sum + p.currentRevenue, 0);
+      const currentProductionProfit = productAnalysis.reduce((sum, p) => sum + p.currentProfit, 0);
+      const sustainableRevenue = productAnalysis.reduce((sum, p) => sum + (p.sustainableUnits * p.price), 0);
       const sustainableProfit = productAnalysis.reduce((sum, p) => sum + (p.sustainableUnits * (p.price - p.cost)), 0);
+      
+      // CORRECTED (PASO 5 y 6): Global utilization is now a fixed strategic value (OEE).
+      // This is used for the main KPI and potential calculations.
+      // The individual department bars will still show their actual calculated utilization.
+      const OEE_UTILIZATION = 68.4;
+      const globalCapacityUtilization = OEE_UTILIZATION;
+      const capacityScalingFactor = OEE_UTILIZATION > 0 ? 100 / OEE_UTILIZATION : 1;
+      
+      const maxCapacityRevenue = currentProductionRevenue * capacityScalingFactor;
+      const maxCapacityProfit = currentProductionProfit * capacityScalingFactor;
 
-      // 5. Calculate capacity and opportunity gaps based on the PLAN vs REALITY
-      // The capacity is what percentage of your plan you can actually fulfill.
-      const actualCapacityPercentage = plannedRevenue > 0 ? (actualSustainableRevenue / plannedRevenue) * 100 : 0;
-      const opportunityGapRevenue = plannedRevenue - actualSustainableRevenue;
-      const opportunityGapProfit = plannedProfit - sustainableProfit;
+      // 6. Calculate the opportunity gap
+      const opportunityGapRevenue = maxCapacityRevenue - currentProductionRevenue;
+      const opportunityGapProfit = maxCapacityProfit - currentProductionProfit;
+
+      // 7. Calculate historical average
+      const totalHistoricalRevenue = HISTORICAL_REVENUE.reduce((sum, item) => sum + item.revenue, 0);
+      const averageHistoricalRevenue = totalHistoricalRevenue > 0 ? totalHistoricalRevenue / HISTORICAL_REVENUE.length : 0;
 
       setResults({
         departmentUtilization,
         productAnalysis,
-        plannedRevenue,
-        plannedProfit,
-        actualSustainableRevenue,
+        currentProductionRevenue,
+        currentProductionProfit,
+        sustainableRevenue,
         sustainableProfit,
+        averageHistoricalRevenue,
         bottleneckDepartmentName: bottleneckDepartment.name,
         bottleneckOverloadPercentage: bottleneckDepartment.utilizationPercentage,
-        actualCapacityPercentage,
+        globalCapacityUtilization,
         opportunityGapRevenue,
         opportunityGapProfit,
+        maxCapacityRevenue,
+        maxCapacityProfit,
       });
 
       setIsLoading(false);
@@ -154,6 +179,7 @@ const App: React.FC = () => {
           onGetSuggestions={handleGetSuggestions} 
           isLoadingSuggestions={isLoadingSuggestions} 
           suggestions={suggestions} 
+          historicalData={HISTORICAL_REVENUE}
         />
       </main>
       <footer className="text-center py-4 text-gray-600 text-sm">

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Department, Product } from '../types';
 
@@ -49,9 +50,11 @@ const WorkshopCard: React.FC<WorkshopCardProps> = ({ departments, setDepartments
                 <th className="p-3">Producto</th>
                 <th className="p-3 text-center">Precio Venta (Q)</th>
                 <th className="p-3 text-center">Costo (Q)</th>
-                <th className="p-3 text-center">Unidades/Mes (Actual)</th>
-                <th className="p-3 text-center">h/ud Maquinaria</th>
+                <th className="p-3 text-center">Unidades/Mes (Plan Actual)</th>
+                <th className="p-3 text-center">h/ud Impresión UV</th>
+                <th className="p-3 text-center">h/ud Corte/UV</th>
                 <th className="p-3 text-center">h/ud Rev. Artes</th>
+                <th className="p-3 text-center">h/ud Secado</th>
                 <th className="p-3 text-center">h/ud Estructuras</th>
                 <th className="p-3 text-center">h/ud Instalación</th>
               </tr>
@@ -72,8 +75,14 @@ const WorkshopCard: React.FC<WorkshopCardProps> = ({ departments, setDepartments
                   <td className="p-2">
                      <input type="number" step="0.01" value={p.hoursImpresion} onChange={e => handleProductChange(p.id, 'hoursImpresion', parseFloat(e.target.value) || 0)} className="w-24 text-center bg-gray-800 border-b border-gray-600 focus:outline-none focus:border-teal-500" />
                   </td>
+                   <td className="p-2">
+                     <input type="number" step="0.01" value={p.hoursCorteUV} onChange={e => handleProductChange(p.id, 'hoursCorteUV', parseFloat(e.target.value) || 0)} className="w-24 text-center bg-gray-800 border-b border-gray-600 focus:outline-none focus:border-teal-500" />
+                  </td>
                   <td className="p-2">
                      <input type="number" step="0.01" value={p.hoursArtes} onChange={e => handleProductChange(p.id, 'hoursArtes', parseFloat(e.target.value) || 0)} className="w-24 text-center bg-gray-800 border-b border-gray-600 focus:outline-none focus:border-teal-500" />
+                  </td>
+                  <td className="p-2">
+                     <input type="number" step="0.01" value={p.hoursSecado} onChange={e => handleProductChange(p.id, 'hoursSecado', parseFloat(e.target.value) || 0)} className="w-24 text-center bg-gray-800 border-b border-gray-600 focus:outline-none focus:border-teal-500" />
                   </td>
                   <td className="p-2">
                      <input type="number" step="0.01" value={p.hoursEstructuras} onChange={e => handleProductChange(p.id, 'hoursEstructuras', parseFloat(e.target.value) || 0)} className="w-24 text-center bg-gray-800 border-b border-gray-600 focus:outline-none focus:border-teal-500" />

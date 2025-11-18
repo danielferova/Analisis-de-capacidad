@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 export const PlusIcon = () => (
@@ -21,32 +22,39 @@ export const SparklesIcon = () => (
 
 
 export const INITIAL_DEPARTMENTS = [
-  // Capacidad calculada de la suma de personal de Impresión (7) y Artes Finales (1).
-  // (8 personas * 44 h/semana * 4.333 sem/mes) = 1525 horas
-  { id: 'impresion', name: 'Taller de Impresión (Arte/Mano de Obra)', availableHours: 1525 },
-  // Capacidad calculada a partir de los datos reales de OEE de las 9 máquinas clave.
-  // Suma de horas efectivas = (Horas Teóricas * Disponibilidad * Eficiencia * Calidad) para cada máquina.
-  // Total correcto: 672 horas/mes.
+  // Capacidad según reporte: 7 personas * 44h/sem * 4.33 sem/mes
+  { id: 'impresion', name: 'Taller de Impresión (Mano de Obra)', availableHours: 1334 },
+  // Capacidad de maquinaria se mantiene según OEE
   { id: 'maquinaria', name: 'Maquinaria Clave (OEE Real)', availableHours: 672 },
-  // Capacidad calculada del personal de Estructuras.
-  // (6 personas * 44 h/semana * 4.333 sem/mes) = 1144 horas
-  { id: 'estructuras', name: 'Taller de Estructuras', availableHours: 1144 },
-  // Capacidad calculada del personal de Instalación.
-  // (8 personas * 44 h/semana * 4.333 sem/mes) = 1525 horas
-  { id: 'instalacion', name: 'Equipo de Instalación', availableHours: 1525 },
+  // Capacidad según reporte: 6 personas * 44h/sem * 4.33 sem/mes
+  { id: 'estructuras', name: 'Taller de Estructuras', availableHours: 1143 },
+  // Capacidad según reporte: 8 personas * 44h/sem * 4.33 sem/mes
+  { id: 'instalacion', name: 'Equipo de Instalación', availableHours: 1524 },
+  // NUEVO: Capacidad según reporte: 1 persona * 44h/sem * 4.33 sem/mes
+  { id: 'artes', name: 'Artes Finales', availableHours: 190.5 },
 ];
 
 export const INITIAL_PRODUCTS = [
-  { id: '1', name: 'Vallas / Gigantografías', price: 3501.53, cost: 2128.06, currentMonthlyUnits: 25, hoursImpresion: 3.11, hoursArtes: 1, hoursEstructuras: 0, hoursInstalacion: 0.96 },
-  { id: '2', name: 'Camión rotulado', price: 5065.16, cost: 3039.09, currentMonthlyUnits: 26, hoursImpresion: 5.31, hoursArtes: 1, hoursEstructuras: 3.82, hoursInstalacion: 2.06 },
-  { id: '3', name: 'Adhesivos y lonas pequeñas', price: 930.98, cost: 558.19, currentMonthlyUnits: 240, hoursImpresion: 0.13, hoursArtes: 0.06, hoursEstructuras: 0, hoursInstalacion: 0.1 },
-  { id: '4', name: 'Cenefas / Gondolas', price: 3512.50, cost: 1049.50, currentMonthlyUnits: 59, hoursImpresion: 7.73, hoursArtes: 1.1, hoursEstructuras: 5.19, hoursInstalacion: 2.17 },
-  { id: '5', name: 'Caja de luz', price: 16875.00, cost: 10250.00, currentMonthlyUnits: 5, hoursImpresion: 18.71, hoursArtes: 1.1, hoursEstructuras: 17, hoursInstalacion: 7 },
-  { id: '6', name: 'Salientes (soportes/sobresalientes visuales)', price: 6346.43, cost: 4038.23, currentMonthlyUnits: 4, hoursImpresion: 7.07, hoursArtes: 1, hoursEstructuras: 6.4, hoursInstalacion: 0.58 },
-  { id: '7', name: 'Letras encajueladas (acero/acrílico)', price: 7689.33, cost: 4798.00, currentMonthlyUnits: 5, hoursImpresion: 0, hoursArtes: 0, hoursEstructuras: 0, hoursInstalacion: 0 },
-  { id: '8', name: 'Medallas, trofeos, fichas de acrílico', price: 405.66, cost: 236.00, currentMonthlyUnits: 50, hoursImpresion: 6, hoursArtes: 1, hoursEstructuras: 0, hoursInstalacion: 0 },
-  { id: '9', name: 'Stands / Estructura personalizada', price: 11265.00, cost: 7444.20, currentMonthlyUnits: 3, hoursImpresion: 0, hoursArtes: 0, hoursEstructuras: 0, hoursInstalacion: 0 },
+  // Vallas (20) + Gigantografías (4) = 24
+  { id: '1', name: 'Vallas / Gigantografías', price: 3501.53, cost: 2128.06, currentMonthlyUnits: 24, hoursImpresion: 3.11, hoursCorteUV: 0, hoursArtes: 1, hoursEstructuras: 0, hoursInstalacion: 0.96, hoursSecado: 1.50 },
+  // Camión rotulado (8)
+  { id: '2', name: 'Camión rotulado', price: 5065.16, cost: 3039.09, currentMonthlyUnits: 8, hoursImpresion: 5.31, hoursCorteUV: 0, hoursArtes: 1, hoursEstructuras: 3.82, hoursInstalacion: 2.06, hoursSecado: 0.40 },
+  // Adhesivos y lonas pequeñas (595) - PRECIO Y COSTO CORREGIDOS
+  { id: '3', name: 'Adhesivos y lonas pequeñas', price: 80, cost: 30, currentMonthlyUnits: 595, hoursImpresion: 0.13, hoursCorteUV: 0, hoursArtes: 0.06, hoursEstructuras: 0, hoursInstalacion: 0.1, hoursSecado: 0.50 },
+  // Cenefas (30) + Gondolas (1) = 31
+  { id: '4', name: 'Cenefas / Gondolas', price: 3512.50, cost: 1049.50, currentMonthlyUnits: 31, hoursImpresion: 7.73, hoursCorteUV: 0, hoursArtes: 1.1, hoursEstructuras: 5.19, hoursInstalacion: 2.17, hoursSecado: 1.20 },
+  // Caja de luz (1)
+  { id: '5', name: 'Caja de luz', price: 16875.00, cost: 10250.00, currentMonthlyUnits: 1, hoursImpresion: 18.71, hoursCorteUV: 0, hoursArtes: 1.1, hoursEstructuras: 17, hoursInstalacion: 7, hoursSecado: 1.50 },
+  // Salientes (1)
+  { id: '6', name: 'Salientes (soportes/sobresalientes visuales)', price: 6346.43, cost: 4038.23, currentMonthlyUnits: 1, hoursImpresion: 7.07, hoursCorteUV: 0, hoursArtes: 1, hoursEstructuras: 6.4, hoursInstalacion: 0.58, hoursSecado: 1.00 },
+  // Letras encajueladas (0)
+  { id: '7', name: 'Letras encajueladas (acero/acrílico)', price: 7689.33, cost: 4798.00, currentMonthlyUnits: 0, hoursImpresion: 0, hoursCorteUV: 0, hoursArtes: 0, hoursEstructuras: 0, hoursInstalacion: 0, hoursSecado: 0 },
+  // Medallas (50 - DATOS CORREGIDOS)
+  { id: '8', name: 'Medallas, trofeos, fichas de acrílico', price: 405.66, cost: 236.00, currentMonthlyUnits: 50, hoursImpresion: 0.10, hoursCorteUV: 0.12, hoursArtes: 0.25, hoursEstructuras: 0, hoursInstalacion: 0, hoursSecado: 0 },
+  // Stands (0)
+  { id: '9', name: 'Stands / Estructura personalizada', price: 11265.00, cost: 7444.20, currentMonthlyUnits: 0, hoursImpresion: 0, hoursCorteUV: 0, hoursArtes: 0, hoursEstructuras: 0, hoursInstalacion: 0, hoursSecado: 0 },
 ];
+
 
 export const HISTORICAL_REVENUE = [
   { month: 'Febrero', revenue: 414450.31 },

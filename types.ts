@@ -1,5 +1,6 @@
+
 export interface Department {
-  id: 'impresion' | 'estructuras' | 'instalacion' | 'maquinaria';
+  id: 'impresion' | 'estructuras' | 'instalacion' | 'maquinaria' | 'artes';
   name: string;
   availableHours: number;
 }
@@ -11,13 +12,15 @@ export interface Product {
   cost: number;
   currentMonthlyUnits: number;
   hoursImpresion: number;
+  hoursCorteUV: number; // NUEVO: Tiempo de corte/grabado láser/UV
   hoursArtes: number;
   hoursEstructuras: number;
   hoursInstalacion: number;
+  hoursSecado: number;
 }
 
 export interface DepartmentUtilization {
-  departmentId: 'impresion' | 'estructuras' | 'instalacion' | 'maquinaria';
+  departmentId: 'impresion' | 'estructuras' | 'instalacion' | 'maquinaria' | 'artes';
   name: string;
   requiredHours: number;
   availableHours: number;
@@ -37,25 +40,32 @@ export interface ProductAnalysis {
   potentialRevenue: number;
   potentialProfit: number;
   bottleneck: string;
-  hoursImpresionAtMax: number; // Corresponds to hoursArtes (labor)
-  hoursMaquinariaAtMax: number; // Corresponds to hoursImpresion (machine)
+  hoursImpresionAtMax: number; // Workload for 'Taller de Impresión (Mano de Obra)' at max units
+  hoursMaquinariaAtMax: number; // Workload for 'Maquinaria Clave (OEE Real)' at max units
   hoursEstructurasAtMax: number;
   hoursInstalacionAtMax: number;
+  hoursArtesAtMax: number;
 }
 
 export interface AnalysisResults {
   departmentUtilization: DepartmentUtilization[];
   productAnalysis: ProductAnalysis[];
-  // Métricas del plan de producción (la meta)
-  plannedRevenue: number;
-  plannedProfit: number;
-  // Métricas sostenibles (la realidad con el cuello de botella)
-  actualSustainableRevenue: number;
+  // Métricas de la producción actual
+  currentProductionRevenue: number;
+  currentProductionProfit: number;
+  // Métricas sostenibles (si la producción actual sobrecarga el cuello de botella)
+  sustainableRevenue: number;
   sustainableProfit: number;
+  // Métricas históricas
+  averageHistoricalRevenue: number;
   // Métricas de diagnóstico
   bottleneckDepartmentName: string;
-  bottleneckOverloadPercentage: number; // Cuánto está sobrecargado el cuello de botella (ej: 167.4%)
-  actualCapacityPercentage: number; // Porcentaje del plan que se puede cumplir (ej: 59.7%)
+  bottleneckOverloadPercentage: number;
+  globalCapacityUtilization: number;
+  // Brecha entre producción actual y el potencial máximo
   opportunityGapRevenue: number;
   opportunityGapProfit: number;
+  // Métricas de potencial máximo (llevando el cuello de botella al 100% con el mix actual)
+  maxCapacityRevenue: number;
+  maxCapacityProfit: number;
 }
